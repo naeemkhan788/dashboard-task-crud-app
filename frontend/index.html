@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TaskFlow - an interactive dynamic task dashboard with full CRUD, kanban and list views." />
+  <title>TaskFlow - Task Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cpath d='M13 4 5 14h6l-1 6 8-10h-6l1-6z' fill='white'/%3E%3C/svg%3E" />
+  <!-- Apply saved theme before first paint to avoid a flash of the wrong theme -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('taskflow-theme');
+      if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app" id="app">
+
+    <!-- ==================== Sidebar ==================== -->
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <div class="sidebar__brand">
+        <span class="brand-logo" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </span>
+        <span class="brand-name">Task<span class="brand-accent">Flow</span></span>
+      </div>
+      <p class="sidebar__tagline">Interactive task dashboard</p>
+
+      <nav class="sidebar__nav" id="sideNav">
+        <a href="#" class="nav-link is-active" data-filter="dashboard">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="nav-link" data-filter="all">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+          All Tasks
+        </a>
+        <a href="#" class="nav-link" data-filter="in-progress">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          In Progress
+        </a>
+        <a href="#" class="nav-link" data-filter="done">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+          Completed
+        </a>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__tip">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span>Tip: drag cards between columns to update their status instantly.</span>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+
+    <!-- ==================== Main ==================== -->
+    <div class="main">
+      <header class="topbar">
+        <button class="icon-btn hamburger" id="hamburgerBtn" aria-label="Open menu">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        </button>
+
+        <div class="search-box">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="searchInput" placeholder="Search tasks by title or description..." aria-label="Search tasks" autocomplete="off" />
+        </div>
+
+        <div class="topbar__actions">
+          <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+          <button class="btn btn--primary" id="newTaskBtn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <span>New Task</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Statistics -->
+      <section class="stats-grid" id="statsGrid" aria-label="Task statistics"></section>
+
+      <!-- Toolbar -->
+      <section class="toolbar">
+        <div class="toolbar__title">
+          <h1 id="boardTitle">Dashboard</h1>
+          <span class="task-count" id="taskCount">0 tasks</span>
+        </div>
+        <div class="toolbar__controls">
+          <div class="chip-group" id="priorityChips" role="group" aria-label="Filter by priority">
+            <button class="chip is-active" data-priority="all">All</button>
+            <button class="chip chip--low" data-priority="low">Low</button>
+            <button class="chip chip--medium" data-priority="medium">Medium</button>
+            <button class="chip chip--high" data-priority="high">High</button>
+          </div>
+          <div class="view-toggle" id="viewToggle" role="group" aria-label="Switch view">
+            <button class="view-btn is-active" data-view="kanban" aria-label="Kanban view" title="Kanban view">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+            </button>
+            <button class="view-btn" data-view="list" aria-label="List view" title="List view">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Board / list / states -->
+      <section class="board-area" id="boardArea" aria-live="polite"></section>
+    </div>
+  </div>
+
+  <!-- ==================== Task modal ==================== -->
+  <div class="modal-overlay" id="taskModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+      <header class="modal__header">
+        <div>
+          <h2 id="taskModalTitle">Create a New Task</h2>
+          <p class="modal__subtitle" id="taskModalSubtitle">Add the details below and drop it onto your board.</p>
+        </div>
+        <button class="icon-btn modal__close" id="taskModalClose" aria-label="Close dialog">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </header>
+
+      <form id="taskForm" novalidate>
+        <input type="hidden" id="taskId" />
+
+        <div class="field">
+          <label for="taskTitle">Title <span class="req">*</span></label>
+          <input type="text" id="taskTitle" maxlength="100" placeholder="e.g. Design homepage hero section" />
+          <p class="field-error" id="titleError" hidden>Title is required.</p>
+        </div>
+
+        <div class="field">
+          <label for="taskDescription">Description</label>
+          <textarea id="taskDescription" rows="3" placeholder="Add more details about this task..."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label id="statusLabel">Status</label>
+            <div class="seg-group" role="radiogroup" aria-labelledby="statusLabel">
+              <label class="seg"><input type="radio" name="status" value="todo" checked /><span>To Do</span></label>
+              <label class="seg"><input type="radio" name="status" value="in-progress" /><span>In Progress</span></label>
+              <label class="seg"><input type="radio" name="status" value="done" /><span>Done</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label id="priorityLabel">Priority</label>
+            <div class="seg-group" role="radiogroup" aria-labelledby="priorityLabel">
+              <label class="seg"><input type="radio" name="priority" value="low" /><span>Low</span></label>
+              <label class="seg"><input type="radio" name="priority" value="medium" checked /><span>Medium</span></label>
+              <label class="seg"><input type="radio" name="priority" value="high" /><span>High</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="taskDueDate">Due date</label>
+          <input type="date" id="taskDueDate" />
+        </div>
+
+        <footer class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="taskModalCancel">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="taskModalSave">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <span>Create Task</span>
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== Confirm delete modal ==================== -->
+  <div class="modal-overlay" id="confirmModal" hidden>
+    <div class="modal modal--confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="confirm-icon" aria-hidden="true">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+      </div>
+      <h2 id="confirmTitle">Delete this task?</h2>
+      <p id="confirmMessage">This action cannot be undone.</p>
+      <footer class="modal__footer modal__footer--center">
+        <button class="btn btn--ghost" id="confirmCancel">Cancel</button>
+        <button class="btn btn--danger" id="confirmDelete">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Delete</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <noscript><p style="padding:24px;font-family:sans-serif">TaskFlow needs JavaScript enabled to run.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
